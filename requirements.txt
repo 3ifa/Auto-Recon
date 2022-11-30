@@ -1,0 +1,8 @@
+dnspython
+nmap
+requests
+python-Wappalyzer
+whois
+Flask
+Flask-Cors
+pydig
