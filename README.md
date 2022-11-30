@@ -16,6 +16,6 @@ python3 app.py
 ```
 ### Docker 
 ```bash
-docker build -t Auto-Recon:latest
-docker run -dp 80:80 Auto-Recon:latest
+docker build -t auto-recon:latest .
+docker run -dp 80:80 auto-recon:latest
 ```
