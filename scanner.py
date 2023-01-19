@@ -101,7 +101,15 @@ def checkwaf(url):
     """
     Query to check for WAF
     """
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
     try:
+        r = requests.get(f'http://{url}', headers=headers)
+        if r.headers.get("server") in ["cloudflare","AWS Security Group","Incapsula","Sucuri/Cloudproxy","Imperva"]:
+            return " The Server is Behind a Web Application Firewall"
+    except requests.exceptions.RequestException as e:
+        return f"Error: {e}"
+    return " No WAF detected."
+"""    try:
         sc = requests.get(url)
         if sc.status_code == 200:
             sc = sc.status_code
@@ -129,7 +137,7 @@ def checkwaf(url):
     if waffd.status_code == 403:
         return("[\033[1;31m!\033[0;0m] WAF Detected.\n")
     else:
-        return("[*] No WAF Detected.\n")
+        return("[*] No WAF Detected.\n")"""
         ########################
 # Function to enumerate github and cloud
 def cloudgitEnum(domain):
@@ -173,13 +181,39 @@ def cloudgitEnum(domain):
 
 # Query the domain
 def whoisLookup(domain):
-
-    import whois
+    import re
+    import socket
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect(("whois.iana.org", 43))
+    s.sendall((domain + "\r\n").encode())
+    response = ""
+    while True:
+        data = s.recv(4096).decode()
+        response += data
+        if not data:
+            break
+    s.close()
+    data = {}
+    for line in response.split("\n"):
+        match = re.search(r"(inetnum|organisation|status|whois|changed|source):\s+(.*)", line)
+        if match:
+            key, value = match.groups()
+            data[key] = value
+    inetnum = data.get('inetnum', '')
+    org = data.get('organisation', '')
+    status = data.get('status', '')
+    whois = data.get('whois', '')
+    changed = data.get('changed', '')
+    source = data.get('source', '')
+    output = f'inetnum:      {inetnum}\norganisation: {org}\nstatus:       {status}\nwhois:        {whois}\nchanged:      {changed}\nsource:       {source}'
+    return output
+"""    import whois
     try:
                
         return whois.query(domain)
     except:
         return("\nUnable to whois " + domain )
+"""
 #######
 # Perform basic enumeration
 def basicEnum(domain):
